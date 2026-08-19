@@ -1,0 +1,124 @@
+import os
+import sqlite3
+import pandas as pd
+
+
+current_folder = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(current_folder, 'geek.db')
+
+
+connection = sqlite3.connect(db_path)
+cursor = connection.cursor()
+
+
+cursor.execute("DROP TABLE IF EXISTS STUDENT")
+cursor.execute("DROP TABLE IF EXISTS GRADES")
+
+createTable = '''CREATE TABLE STUDENT(
+StudentId int, 
+FirstName VARCHAR(100),
+LastName VARCHAR(100), 
+Age int, 
+Department VARCHAR(100)
+)'''
+
+cursor.execute(createTable)
+
+
+cursor.execute("INSERT INTO STUDENT VALUES (1, 'Dana', 'Cohen', 25, 'IT')")
+cursor.execute("INSERT INTO STUDENT VALUES (2, 'Avi', 'Levi', 28, 'QA')")
+cursor.execute("INSERT INTO STUDENT VALUES (1, 'Ellie', 'Rafaeli', 21, 'Tier 1')")
+
+
+createGrades = '''CREATE TABLE GRADES(
+StudentId int,
+CourseName VARCHAR(100),
+Grade int
+) '''
+cursor.execute(createGrades)
+
+cursor.execute("INSERT INTO GRADES VALUES (1, 'Python', 92)")
+cursor.execute("INSERT INTO GRADES VALUES (2, 'C Programming', 85)")
+cursor.execute("INSERT INTO GRADES VALUES (3, 'OOP', 76)")
+connection.commit()
+
+
+
+cursor = connection.execute("SELECT * from STUDENT ORDER BY Department DESC")
+rows = cursor.fetchall()
+for i in rows:
+    print(i[4])
+print("-----------")
+
+cursor = connection.execute("SELECT * from STUDENT LIMIT 1")
+rows1 = cursor.fetchall()
+for i in rows1:
+    print(i[1])
+print("-----------")
+
+
+joinque = ''' SELECT STUDENT.FirstName, STUDENT.Department, GRADES.CourseName, GRADES.Grade 
+FROM STUDENT
+JOIN GRADES ON STUDENT.StudentId = GRADES.StudentId '''
+
+cursor = connection.execute(joinque)
+rows2 = cursor.fetchall()
+for i in rows2:
+    print(f"{i[0]} | {i[1]} | {i[2]} | {i[3]}")
+
+
+joinqueue = '''SELECT STUDENT.FirstName, GRADES.Grade
+FROM STUDENT
+JOIN GRADES ON  STUDENT.StudentId = GRADES.StudentId WHERE Grade < 90'''
+
+cursor = connection.execute(joinqueue)
+rows = cursor.fetchall()
+for i in rows:
+    print(i)
+
+joinqueue = '''SELECT STUDENT.FirstName, GRADES.Grade
+FROM STUDENT
+LEFT JOIN GRADES
+USING(StudentId) '''
+
+cursor = connection.execute(joinqueue)
+rows = cursor.fetchall()
+for i in rows:
+    print(i)
+print("-----------")
+
+joinque = '''SELECT STUDENT.FirstName, GRADES.Grade
+FROM STUDENT
+CROSS JOIN GRADES WHERE CourseName = 'Python' '''
+
+cursor = connection.execute(joinque)
+rows = cursor.fetchall()
+for i in rows:
+    print(i)
+print("-------------")
+
+delque = '''DELETE FROM GRADES WHERE Grade < 80'''
+cursor = connection.execute(delque)
+cursor = connection.commit()
+
+selectque = '''SELECT * FROM GRADES'''
+cursor = connection.execute(selectque)
+rows = cursor.fetchall()
+for i in rows:
+    print(i[1])
+
+print("~~~~~~~~~~~~~~")
+connection.execute("DROP TABLE GRADES")
+print("The table just dropped!😒")
+
+
+upque = '''UPDATE STUDENT SET Age = 18 WHERE FirstName = 'Dana' '''
+cursor = connection.execute(upque)
+connection.commit()
+queue = '''SELECT * FROM STUDENT WHERE FirstName = 'Dana' '''
+cursor = connection.execute(queue)
+rows = cursor.fetchall()
+for i in rows:
+    print("The updated Age is:", i[3])
+
+connection.close()
